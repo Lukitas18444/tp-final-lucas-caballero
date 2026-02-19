@@ -116,3 +116,16 @@ JOIN mascotas m ON h.mascota_id = m.id
 JOIN duenos d ON m.dueno_id = d.id
 JOIN veterinarios v ON h.veterinario_id = v.id
 ORDER BY h.fecha_de_registro DESC;
+
+
+ALTER TABLE veterinarios ADD COLUMN password VARCHAR(255);
+
+
+SET SQL_SAFE_UPDATES = 0;
+
+UPDATE veterinarios 
+SET password = '$2b$10$7vN6j.h77u9eK83U.L6EuenLpBv6P9N6YmX7vM.8o3A1Q5X7vM.8o' 
+WHERE matricula = '4501';
+
+SET SQL_SAFE_UPDATES = 1;
+
