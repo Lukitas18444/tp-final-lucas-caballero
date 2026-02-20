@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
 const pool = require('./db');
 const app = express();
 const bcrypt = require('bcrypt');
@@ -16,9 +17,6 @@ app.use(express.json());
 app.post('/login', async (req, res) => {
     try {
         const { matricula, password } = req.body;
-        console.log("--- INTENTO DE LOGIN ---");
-        console.log("Matricula ingresada:", matricula);
-        console.log("Password ingresada:", password);
 
         const [rows] = await pool.query('SELECT * FROM veterinarios WHERE matricula = ?', [matricula]);
 
@@ -30,9 +28,8 @@ app.post('/login', async (req, res) => {
         const veterinario = rows[0];
         console.log("Hash en DB:", veterinario.password);
 
-        // Comparación manual para descartar errores de bcrypt
         const esCorrecta = await bcrypt.compare(password, veterinario.password);
-        console.log("¿La contraseña coincide?:", esCorrecta);
+        console.log("La contraseña coincide?:", esCorrecta);
 
         if (!esCorrecta) {
             return res.status(401).json({ error: "Contraseña incorrecta" });
@@ -52,6 +49,53 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.post('/mascotas',  async (req, res) => {
+    const { nombre, especie, fecha_de_nacimiento, dueno_nombre_completo } = req.body;
+
+    if (!nombre || !especie || !dueno_nombre_completo) {
+        return res.status(400).json({ error: "Faltan datos obligatorios" });
+    }
+
+    try {
+        
+        const partes = dueno_nombre_completo.split(' ');
+        const nombreDueno = partes[0];
+        const apellidoDueno = partes.slice(1).join(' ') || 'Sin Apellido';
+
+
+        const [duenos] = await pool.query(
+            'SELECT id FROM duenos WHERE nombre = ? AND apellido = ?',
+            [nombreDueno, apellidoDueno]
+        );
+
+        let duenoId;
+
+        if (duenos.length > 0) {
+            
+            duenoId = duenos[0].id;
+        } else {
+            
+            const [nuevoDueno] = await pool.execute(
+                'INSERT INTO duenos (nombre, apellido, telefono) VALUES (?, ?, ?)',
+                [nombreDueno, apellidoDueno, '000-0000']
+            );
+            duenoId = nuevoDueno.insertId;
+        }
+
+        
+        await pool.execute(
+            'INSERT INTO mascotas (nombre, especie, fecha_de_nacimiento, dueno_id) VALUES (?, ?, ?, ?)',
+            [nombre, especie, fecha_de_nacimiento, duenoId]
+        );
+
+        res.status(201).json({ mensaje: "Mascota y dueño procesados con éxito" });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error al procesar la solicitud" });
+    }
+});
+
 const verificarJWT = (req, res, next) => {
     const token = req.headers['authorization'];
 
@@ -59,18 +103,18 @@ const verificarJWT = (req, res, next) => {
         return res.status(403).json({ error: "No se proporcionó un token" });
     }
 
-    // El token suele venir como "Bearer <token>", así que lo limpiamos
     const tokenLimpio = token.startsWith('Bearer ') ? token.slice(7) : token;
+    
+    const secreto = process.env.JWT_SECRET || 'clave_secreta_provisoria';
 
-    jwt.verify(tokenLimpio, process.env.JWT_SECRET, (err, decoded) => {
+    jwt.verify(tokenLimpio, secreto, (err, decoded) => {
         if (err) {
             return res.status(401).json({ error: "Token inválido o expirado" });
         }
-        req.usuario = decoded; // Guardamos los datos del vet en la petición
+        req.usuario = decoded;
         next();
     });
 };
-
 
 app.use((req, res, next) => {
     console.log(`${req.method} realizado a ${req.url}`);
@@ -81,17 +125,30 @@ app.use((req, res, next) => {
 app.get('/historial', verificarJWT, async (req, res) => {
     try {
         const sql = `
-            SELECT h.id, m.nombre AS mascota, m.especie, 
-            CONCAT(d.nombre, ' ', d.apellido) AS dueno,
-            h.descripcion, h.fecha_de_registro
-            FROM historial_clinico h
-            JOIN mascotas m ON h.mascota_id = m.id
-            JOIN duenos d ON m.dueno_id = d.id;
-        `;
+    SELECT 
+        m.id, 
+        m.nombre AS mascota, 
+        m.especie, 
+        CONCAT(d.nombre, ' ', d.apellido) AS dueno,
+        COALESCE(h.descripcion, 'Sin registros todavía') AS descripcion, 
+        h.fecha_de_registro
+    FROM mascotas m
+    JOIN duenos d ON m.dueno_id = d.id
+    LEFT JOIN historial_clinico h ON m.id = h.mascota_id;
+`;
         const [rows] = await pool.query(sql);
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/duenos', verificarJWT, async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT id, CONCAT(nombre, " ", apellido) AS nombre_completo FROM duenos');
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: "Error al obtener dueños" });
     }
 });
 
@@ -107,7 +164,10 @@ app.delete('/mascotas/:id', verificarJWT, async (req, res) => {
 
 
 
-
+bcrypt.hash('admin123', 10).then(hash => {
+    console.log("USA ESTE HASH EXACTO EN TU SQL PARA ADMIN123:");
+    console.log(hash);
+});
 
 
 

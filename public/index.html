@@ -7,31 +7,44 @@
 </head>
 <body>
 
-<div class="container">
-    <div id="seccion-login">
-        <h1>🔐 Acceso Veterinaria</h1>
+<div id="seccion-login" class="pantalla-centrada">
+    <div class="card-login">
+        <h2>🏥 Sistema Veterinaria</h2>
+        <p>Por favor, inicie sesión</p>
         <form id="form-login">
-            <input type="text" id="matricula" placeholder="Matrícula (ej: 4501)" required>
+            <input type="text" id="matricula" placeholder="Matrícula" required>
             <input type="password" id="password-login" placeholder="Contraseña" required>
-            <button type="submit" style="width: 100%;">Entrar</button>
+            <button type="submit">Entrar</button>
         </form>
-    </div>
-
-    <div id="seccion-panel" style="display: none;">
-        <h1>🐾 Panel de Control</h1>
-        <button id="btn-logout" style="background: #95a5a6; margin-bottom: 20px;">Cerrar Sesión</button>
-        <div id="lista-historial"></div>
     </div>
 </div>
 
+<div id="seccion-panel" style="display: none;" class="contenedor-principal">
+    <nav class="barra-navegacion">
+        <h1>🐾 Panel de Control</h1>
+        <button id="btn-logout">Cerrar Sesión</button>
+    </nav>
 
-    <div class="container">
-        <h1>🐾 Panel de Control Veterinaria</h1>
-        
-        <div id="lista-historial">
-            <p style="text-align: center;">Cargando historial de pacientes...</p>
-        </div>
+    <div class="contenido">
+        <section class="formulario-mascota">
+            <h3>Registrar Nueva Mascota</h3>
+            <form id="form-mascota">
+                <input type="text" id="m-nombre" placeholder="Nombre Mascota" required>
+                <input type="text" id="m-especie" placeholder="Especie" required>
+                <input type="date" id="m-fecha" required>
+                <input type="text" id="m-dueno" list="lista-duenos" placeholder="Nombre del Dueño" required>
+                <datalist id="lista-duenos"></datalist>
+                <button type="submit">+ Agregar</button>
+            </form>
+        </section>
+
+        <section class="listado">
+            <h3>Historial de Pacientes</h3>
+            <div id="lista-historial">
+                </div>
+        </section>
     </div>
+</div>
     <script src="index.js"></script>
 </body>
 </html>
