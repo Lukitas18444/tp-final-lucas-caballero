@@ -1,10 +1,24 @@
-const contenedor = document.getElementById('lista-historial');
-const seccionLogin = document.getElementById('seccion-login');
-const seccionPanel = document.getElementById('seccion-panel');
-const formLogin = document.getElementById('form-login');
+const contenedor = document.getElementById('lista-historial') as HTMLDivElement;
+const seccionLogin = document.getElementById('seccion-login') as HTMLElement;
+const seccionPanel = document.getElementById('seccion-panel') as HTMLElement;
+const formLogin = document.getElementById('form-login') as HTMLFormElement;
+const formMascota = document.getElementById('form-mascota') as HTMLFormElement;
 
+interface HistorialItem {
+    id: number;
+    mascota: string;
+    especie: string;
+    dueno: string;
+    descripcion: string;
+    fecha_de_registro?: string;
+}
 
-const obtenerHistorial = async () => {
+interface Dueno {
+    id: number;
+    nombre_completo: string;
+}
+
+const obtenerHistorial = async (): Promise<void> => {
     const token = localStorage.getItem('token_vet');
     
     try {
@@ -20,11 +34,9 @@ const obtenerHistorial = async () => {
             return;
         }
 
-        const datos = await respuesta.json();
-     
+        const datos: HistorialItem[] = await respuesta.json();
         contenedor.innerHTML = ''; 
 
-     
         if (datos.length === 0) {
             contenedor.innerHTML = '<p>No hay pacientes con historial todavía.</p>';
             return;
@@ -46,11 +58,10 @@ const obtenerHistorial = async () => {
     }
 };
 
-
-formLogin.addEventListener('submit', async (e) => {
+formLogin.addEventListener('submit', async (e: Event) => {
     e.preventDefault();
-    const matricula = document.getElementById('matricula').value;
-    const password = document.getElementById('password-login').value;
+    const matricula = (document.getElementById('matricula') as HTMLInputElement).value;
+    const password = (document.getElementById('password-login') as HTMLInputElement).value;
 
     try {
         const res = await fetch('http://localhost:3000/login', {
@@ -73,7 +84,7 @@ formLogin.addEventListener('submit', async (e) => {
 });
 
 
-window.eliminarMascota = async (id) => {
+(window as any).eliminarMascota = async (id: number) => {
     const token = localStorage.getItem('token_vet');
     if (!confirm("¿Seguro que quieres borrar este registro?")) return;
 
@@ -95,8 +106,7 @@ window.eliminarMascota = async (id) => {
     }
 };
 
-
-const verificarEstado = () => {
+const verificarEstado = (): void => {
     const token = localStorage.getItem('token_vet');
     if (token) {
         seccionLogin.style.display = 'none';
@@ -109,25 +119,23 @@ const verificarEstado = () => {
     }
 };
 
-const logout = () => {
+const logout = (): void => {
     localStorage.removeItem('token_vet');
     verificarEstado();
 };
 
-document.getElementById('btn-logout').onclick = logout;
+const btnLogout = document.getElementById('btn-logout');
+if (btnLogout) btnLogout.onclick = logout;
 
-
-const formMascota = document.getElementById('form-mascota');
-
-formMascota.addEventListener('submit', async (e) => {
+formMascota.addEventListener('submit', async (e: Event) => {
     e.preventDefault();
     
     const token = localStorage.getItem('token_vet');
     const nuevaMascota = {
-        nombre: document.getElementById('m-nombre').value,
-        especie: document.getElementById('m-especie').value,
-        fecha_de_nacimiento: document.getElementById('m-fecha').value,
-        dueno_nombre_completo: document.getElementById('m-dueno').value
+        nombre: (document.getElementById('m-nombre') as HTMLInputElement).value,
+        especie: (document.getElementById('m-especie') as HTMLInputElement).value,
+        fecha_de_nacimiento: (document.getElementById('m-fecha') as HTMLInputElement).value,
+        dueno_nombre_completo: (document.getElementById('m-dueno') as HTMLInputElement).value
     };
 
     try {
@@ -154,15 +162,15 @@ formMascota.addEventListener('submit', async (e) => {
     }
 });
 
-const cargarDatalistDuenos = async () => {
+const cargarDatalistDuenos = async (): Promise<void> => {
     const token = localStorage.getItem('token_vet');
-    const datalist = document.getElementById('lista-duenos');
+    const datalist = document.getElementById('lista-duenos') as HTMLDataListElement;
 
     try {
         const res = await fetch('http://localhost:3000/duenos', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        const duenos = await res.json();
+        const duenos: Dueno[] = await res.json();
 
         datalist.innerHTML = '';
         duenos.forEach(d => {
@@ -174,6 +182,5 @@ const cargarDatalistDuenos = async () => {
         console.error("Error al cargar autocompletado de dueños:", err);
     }
 };
-
 
 verificarEstado();
