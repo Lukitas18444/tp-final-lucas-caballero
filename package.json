@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node src/app.ts"
+
   },
   "keywords": [],
   "author": "",
@@ -15,8 +17,7 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mysql2": "^3.17.3",
-    "nodemon": "^3.1.11"
+    "mysql2": "^3.17.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

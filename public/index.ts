@@ -22,7 +22,7 @@ const obtenerHistorial = async (): Promise<void> => {
     const token = localStorage.getItem('token_vet');
     
     try {
-        const respuesta = await fetch('http://localhost:3000/historial', {
+        const respuesta = await fetch('http://localhost:3000/api/historial', {
             method: 'GET',
             headers: { 
                 'Authorization': `Bearer ${token}`
@@ -64,7 +64,7 @@ formLogin.addEventListener('submit', async (e: Event) => {
     const password = (document.getElementById('password-login') as HTMLInputElement).value;
 
     try {
-        const res = await fetch('http://localhost:3000/login', {
+        const res = await fetch('http://localhost:3000/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ matricula, password })
@@ -89,7 +89,7 @@ formLogin.addEventListener('submit', async (e: Event) => {
     if (!confirm("¿Seguro que quieres borrar este registro?")) return;
 
     try {
-        const res = await fetch(`http://localhost:3000/mascotas/${id}`, {
+        const res = await fetch(`http://localhost:3000/api/mascotas/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -139,7 +139,7 @@ formMascota.addEventListener('submit', async (e: Event) => {
     };
 
     try {
-        const res = await fetch('http://localhost:3000/mascotas', {
+        const res = await fetch('http://localhost:3000/api/mascotas', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -167,7 +167,7 @@ const cargarDatalistDuenos = async (): Promise<void> => {
     const datalist = document.getElementById('lista-duenos') as HTMLDataListElement;
 
     try {
-        const res = await fetch('http://localhost:3000/duenos', {
+        const res = await fetch('http://localhost:3000/api/duenos', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const duenos: Dueno[] = await res.json();
